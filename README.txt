@@ -3,7 +3,7 @@ OnePlus OxygenOS/ColorOS OTA Flasher
 Follow these steps to download, extract, and flash your OnePlus firmware using OTA files.
 
 Step 1: Download the Full OTA ZIP  
-  1. Download the full OTA `.zip` file from our repository: https://roms.danielspringer.at/index.php?view=ota 
+  1. Download the full OTA `.zip` file from our OTA Downloader: https://roms.danielspringer.at/index.php?view=ota 
 
 Step 2: Extract the OTA ZIP   
   1. Download otaripper: https://github.com/syedinsaf/otaripper  
