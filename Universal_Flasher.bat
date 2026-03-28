@@ -2,10 +2,9 @@
 title Universal Flasher
 echo.**********************************************************************
 echo.
-echo.              Oneplus 13 - Universal Flasher                      
-echo.       Originally two scripts by FTH PHONE 1902 and Venkay
-echo.            modified by docnok63 and Jonas Salo
+echo.              Oneplus - Universal Flasher                      
 echo.
+echo.**********************************************************************
 @echo off
 
 cd %~dp0
