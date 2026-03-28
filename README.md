@@ -18,7 +18,7 @@ Step 4: Start the Flashing Process
   
   
 ## WARNING  
-Oneplus 15,15R & Ace 6T "needs" to extract system_dlkm_oki from edl package
-Oneplus Ace 6 "needs" to extract system_dlkm_oki & system_dlkm_gki from edl package
+* Oneplus 15,15R & Ace 6T "needs" to extract system_dlkm_oki from edl package
+* Oneplus Ace 6 "needs" to extract system_dlkm_oki & system_dlkm_gki from edl package
 
 as long as you are not flashing from a custom rom you can do without them
