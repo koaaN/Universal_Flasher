@@ -1,4 +1,4 @@
-OnePlus OxygenOS/ColorOS OTA Flasher
+# OnePlus OxygenOS/ColorOS OTA Flasher
 
 Follow these steps to download, extract, and flash your OnePlus firmware using OTA files.
 
@@ -15,3 +15,10 @@ Step 3: Prepare Files for Flashing
 
 Step 4: Start the Flashing Process  
   1. Run the flashing script by executing: Universal_Flasher.bat (Win) or Universal_flasher.sh (Mac/Linux)
+  
+  
+## WARNING  
+Oneplus 15,15R & Ace 6T "needs" to extract system_dlkm_oki from edl package
+Oneplus Ace 6 "needs" to extract system_dlkm_oki & system_dlkm_gki from edl package
+
+as long as you are not flashing from a custom rom you can do without them
