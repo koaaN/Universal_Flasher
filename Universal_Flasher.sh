@@ -1,169 +1,197 @@
-#!/bin/bash
-# Universal Flasher for OnePlus 13 – Super OOS Flasher
-# Originally two scripts by FTH PHONE 1902 and Venkay,
-# modified by docnok63 and Jonas Salo.
-# Converted to a shell script that uses the pre-installed platform-tools.
+#!/usr/bin/env bash
 
-# Change to the directory of this script
+set -euo pipefail
+
+# Change to script directory
 cd "$(dirname "$0")"
 
-# Check if fastboot is available
-if ! command -v fastboot &> /dev/null; then
-  echo "fastboot not found. Please install platform-tools and ensure fastboot is in your PATH."
-  exit 1
+# Locate fastboot
+FASTBOOT="Platform-Tools/fastboot"
+if [[ ! -x "$FASTBOOT" ]]; then
+  if command -v fastboot >/dev/null 2>&1; then
+    FASTBOOT="$(command -v fastboot)"
+  else
+    echo "\"$FASTBOOT\" not found and no fastboot in \$PATH."
+    read -rp "Press Enter to exit..." _
+    exit 1
+  fi
 fi
 
 echo "**********************************************************************"
 echo
-echo "              OnePlus 13 - Super OOS Flasher"
-echo "       Originally two scripts by FTH PHONE 1902 and Venkay"
-echo "            modified by docnok63 and Jonas Salo"
+echo "              OnePlus - Universal Flasher"
+echo
 echo "**********************************************************************"
 echo
 
 echo "************************      START FLASH     ************************"
-fastboot --set-active=a
 
 # Flash the fastboot images first
-fastboot flash boot OOS_FILES_HERE/boot.img
-fastboot flash dtbo OOS_FILES_HERE/dtbo.img
-fastboot flash init_boot OOS_FILES_HERE/init_boot.img
-fastboot flash modem OOS_FILES_HERE/modem.img
-fastboot flash recovery OOS_FILES_HERE/recovery.img
-fastboot flash vbmeta OOS_FILES_HERE/vbmeta.img
-fastboot flash vbmeta_system OOS_FILES_HERE/vbmeta_system.img
-fastboot flash vbmeta_vendor OOS_FILES_HERE/vbmeta_vendor.img
-fastboot flash vendor_boot OOS_FILES_HERE/vendor_boot.img
+"$FASTBOOT" flash boot_a          OTA_FILES_HERE/boot.img
+"$FASTBOOT" flash boot_b          OTA_FILES_HERE/boot.img
+"$FASTBOOT" flash dtbo_a          OTA_FILES_HERE/dtbo.img
+"$FASTBOOT" flash dtbo_b          OTA_FILES_HERE/dtbo.img
+"$FASTBOOT" flash init_boot_a     OTA_FILES_HERE/init_boot.img
+"$FASTBOOT" flash init_boot_b     OTA_FILES_HERE/init_boot.img
+"$FASTBOOT" flash modem_a         OTA_FILES_HERE/modem.img
+"$FASTBOOT" flash modem_b         OTA_FILES_HERE/modem.img
+"$FASTBOOT" flash recovery_a      OTA_FILES_HERE/recovery.img
+"$FASTBOOT" flash recovery_b      OTA_FILES_HERE/recovery.img
+"$FASTBOOT" flash vbmeta_a        OTA_FILES_HERE/vbmeta.img
+"$FASTBOOT" flash vbmeta_b        OTA_FILES_HERE/vbmeta.img
+"$FASTBOOT" flash vbmeta_system_a OTA_FILES_HERE/vbmeta_system.img
+"$FASTBOOT" flash vbmeta_system_b OTA_FILES_HERE/vbmeta_system.img
+"$FASTBOOT" flash vbmeta_vendor_a OTA_FILES_HERE/vbmeta_vendor.img
+"$FASTBOOT" flash vbmeta_vendor_b OTA_FILES_HERE/vbmeta_vendor.img
+"$FASTBOOT" flash vendor_boot_a   OTA_FILES_HERE/vendor_boot.img
+"$FASTBOOT" flash vendor_boot_b   OTA_FILES_HERE/vendor_boot.img
 
-# Check if super.img exists and flash it if so
-if [ -f "super.img" ]; then
-    fastboot flash super super.img
-else
-    echo "super.img not found. Skipping super.img..."
+###############################################################################
+# super.img handling
+###############################################################################
+
+if [[ -f super.img ]]; then
+  "$FASTBOOT" flash super super.img
 fi
 
+###############################################################################
 # Reboot to fastbootd
-fastboot reboot fastboot
-echo "*******************      REBOOTING TO FASTBOOTD     *******************"
-echo "#################################"
-echo "# Hit English on Phone          #"
-echo "#################################"
-read -n1 -s -r -p "Press any key to continue..."
-echo
+###############################################################################
 
-# Define excluded images (these should not be flashed again)
-excluded_images=(
-  "boot.img" "dtbo.img" "init_boot.img" "modem.img" "recovery.img"
-  "vbmeta.img" "vbmeta_system.img" "vbmeta_vendor.img" "vendor_boot.img"
-  "my_bigball.img" "my_carrier.img" "my_company.img" "my_engineering.img"
-  "my_heytap.img" "my_manifest.img" "my_preload.img" "my_product.img"
-  "my_region.img" "my_stock.img" "odm.img" "product.img" "system.img"
-  "system_dlkm.img" "system_ext.img" "vendor.img" "vendor_dlkm.img"
+echo "  *******************      REBOOTING TO FASTBOOTD     *******************"
+"$FASTBOOT" reboot fastboot
+echo "  #################################"
+echo "  #     Hit English on Phone      #"
+echo "  #################################"
+read -rp "Once the phone is in fastbootd, press Enter to continue..." _
+
+###############################################################################
+# Flash remaining .img files in OTA_FILES_HERE (excluding the ones above)
+###############################################################################
+
+EXCLUDED_IMAGES=(
+  boot.img
+  dtbo.img
+  init_boot.img
+  modem.img
+  recovery.img
+  vbmeta.img
+  vbmeta_system.img
+  vbmeta_vendor.img
+  vendor_boot.img
+  my_bigball.img
+  my_carrier.img
+  my_company.img
+  my_engineering.img
+  my_heytap.img
+  my_manifest.img
+  my_preload.img
+  my_product.img
+  my_region.img
+  my_stock.img
+  odm.img
+  product.img
+  system.img
+  system_dlkm.img
+  system_dlkm_oki.img
+  system_dlkm_gki.img
+  system_ext.img
+  vendor.img
+  vendor_dlkm.img
 )
 
-# Loop through all .img files in OOS_FILES_HERE, skipping excluded ones
-for file in OOS_FILES_HERE/*.img; do
-    [ -e "$file" ] || continue  # Skip if no .img files exist
-    base=$(basename "$file")
-    skip=0
-    for ex in "${excluded_images[@]}"; do
-        if [ "$base" = "$ex" ]; then
-            skip=1
-            break
-        fi
-    done
-    if [ $skip -eq 0 ]; then
-       name="${base%.*}"  # Remove the .img extension
-       echo "Flashing $name..."
-       fastboot flash --slot=all "$name" "$file"
+should_skip() {
+  local name=$1
+  for ex in "${EXCLUDED_IMAGES[@]}"; do
+    if [[ "$name" == "$ex" ]]; then
+      return 0
     fi
+  done
+  return 1
+}
+
+# Loop through all .img files in OTA_FILES_HERE but skip excluded images
+for img in OTA_FILES_HERE/*.img; do
+  [[ -e "$img" ]] || continue
+  basename_img="$(basename "$img")"
+  if should_skip "$basename_img"; then
+    continue
+  fi
+  part="${basename_img%.img}"
+  echo "Flashing ${part}..."
+  "$FASTBOOT" flash --slot=all "$part" "$img"
 done
 
-# Define the partitions list
-partitions=(
-  "my_bigball" "my_carrier" "my_engineering" "my_heytap" "my_manifest"
-  "my_product" "my_region" "my_stock" "odm" "product" "system"
-  "system_dlkm" "system_ext" "vendor" "vendor_dlkm" "my_company" "my_preload"
+###############################################################################
+# Logical partitions handling when super.img is NOT used
+###############################################################################
+
+PARTITIONS=(
+  my_bigball
+  my_carrier
+  my_engineering
+  my_heytap
+  my_manifest
+  my_product
+  my_region
+  my_stock
+  odm
+  product
+  system
+  system_dlkm
+  system_dlkm_oki
+  system_dlkm_gki
+  system_ext
+  vendor
+  vendor_dlkm
+  my_company
+  my_preload
 )
 
-# If super.img does not exist, delete/create & flash logical partitions
-if [ ! -f "super.img" ]; then
-    for part in "${partitions[@]}"; do
-        img_path="OOS_FILES_HERE/${part}.img"
-        if [ -f "$img_path" ]; then
-            fastboot delete-logical-partition "${part}_a"
-            fastboot delete-logical-partition "${part}_b"
-            fastboot delete-logical-partition "${part}_a-cow"
-            fastboot delete-logical-partition "${part}_b-cow"
-            fastboot create-logical-partition "${part}_a" 1
-            fastboot create-logical-partition "${part}_b" 1
-            fastboot flash "$part" "OOS_FILES_HERE/${part}.img"
-        else
-            echo "Warning: File not found for $part ($img_path). Skipping flash..."
-        fi
-    done
-else
-    echo "super.img found. Logical partition flashes skipped..."
+# Delete, create & flash logical partitions only if that partition image exists
+if [[ ! -f super.img ]]; then
+  for p in "${PARTITIONS[@]}"; do
+    if [[ -f "OTA_FILES_HERE/${p}.img" ]]; then
+      echo "Processing ${p}..."
+      "$FASTBOOT" delete-logical-partition "${p}_a"
+      "$FASTBOOT" delete-logical-partition "${p}_b"
+      "$FASTBOOT" delete-logical-partition "${p}_a-cow"
+      "$FASTBOOT" delete-logical-partition "${p}_b-cow"
+      "$FASTBOOT" create-logical-partition "${p}_a" 1
+      "$FASTBOOT" create-logical-partition "${p}_b" 1
+      "$FASTBOOT" flash "${p}_a" "OTA_FILES_HERE/${p}.img"
+    fi
+  done
 fi
+
+###############################################################################
+# Change active slot to a
+###############################################################################
+
+"$FASTBOOT" --set-active=a
+"$FASTBOOT" reboot fastboot
+
+###############################################################################
+# Final messages / wipe decisions
+###############################################################################
 
 echo "********************** CHECK ABOVE FOR ERRORS **************************"
 echo "************** IF ERRORS, DO NOT BOOT INTO SYSTEM **********************"
 
-# If super.img was not flashed, ask if the user wants to wipe data
-if [ ! -f "super.img" ]; then
-    read -p "Do you want to wipe data? (Y/N): " wipe_choice
-    if [[ "$wipe_choice" =~ ^[Nn] ]]; then
-         echo "*********************** NO NEED TO WIPE DATA ****************************"
-         echo "***** Flashing complete. Hit any key to reboot the phone to Android *****"
-         read -n1 -s -r -p "Press any key to continue..."
-         echo
-         fastboot reboot
-         exit 0
-    elif [[ "$wipe_choice" =~ ^[Yy] ]]; then
-         echo "****************** FLASHING COMPLETE *****************"
-         echo "Wipe data by tapping Format Data on the screen, enter the code, and press format data."
-         echo "Phone will automatically reboot into Android after wipe is done."
-         read -n1 -s -r -p "Press any key to continue..."
-         echo
-         exit 0
-    fi
-fi
-
-# Ask if the user wants to prepare for root
-read -p "Are you going to root your OP13? (Y/N): " root_choice
-if [[ "$root_choice" =~ ^[Nn] ]]; then
-    echo "***** Removing extra oplusstanvbk partitions *****"
-    fastboot delete-logical-partition oplusstanvbk_a
-    fastboot delete-logical-partition oplusstanvbk_b
-    fastboot delete-logical-partition oplusstanvbk_a-cow
-    fastboot delete-logical-partition oplusstanvbk_b-cow
-    fastboot delete-logical-partition oplusstanvbk
-    echo "***** Flashing COS .401 oplusstanvbk and GLO COS my_region *****"
-    fastboot flash oplusstanvbk COS_FILES_HERE/oplusstanvbk.img
-    fastboot flash my_region COS_FILES_HERE/my_region.img
-else
-    echo "***** Removing extra oplusstanvbk partitions *****"
-    fastboot delete-logical-partition oplusstanvbk_a
-    fastboot delete-logical-partition oplusstanvbk_b
-    fastboot delete-logical-partition oplusstanvbk_a-cow
-    fastboot delete-logical-partition oplusstanvbk_b-cow
-    fastboot delete-logical-partition oplusstanvbk
-    echo "***** After rooting, you must flash @greg44f's module to get signal back *****"
-fi
-
-# Ask if flashing from ColorOS or if the user wants to wipe data
-read -p "Are you flashing from ColorOS or Want to WIPE DATA? (Y/N): " cos_choice
-if [[ "$cos_choice" =~ ^[Nn] ]]; then
-    echo "*********************** NO NEED TO WIPE DATA ****************************"
-    echo "***** Flashing complete. Hit any key to reboot the phone to Android *****"
-    read -n1 -s -r -p "Press any key to continue..."
-    echo
-    fastboot reboot
-else
+# If super.img was NOT flashed, ask wipe question and then exit
+read -rp "Do you want to wipe data? (y/N): " ans
+case "$ans" in
+  [yY]*)
     echo "****************** FLASHING COMPLETE *****************"
     echo "Wipe data by tapping Format Data on the screen, enter the code, and press format data."
     echo "Phone will automatically reboot into Android after wipe is done."
-fi
-
-read -n1 -s -r -p "Press any key to exit..."
-echo
+    read -rp "Press Enter when you're done..." _
+    exit 0
+    ;;
+  *)
+    echo "*********************** NO NEED TO WIPE DATA ****************************"
+    read -rp "Flashing complete. Press Enter to reboot the phone to Android..." _
+    "$FASTBOOT" reboot
+    exit 0
+    ;;
+esac
