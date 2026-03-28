@@ -63,7 +63,7 @@ set "partitions=my_bigball my_carrier my_engineering my_heytap my_manifest my_pr
 :: Check if super.img exists, if not, only process partitions whose image exists
 if not exist "super.img" (
     for %%P in (%partitions%) do (
-        if exist "OOS_FILES_HERE\%%P.img" (
+        if exist "OTA_FILES_HERE\%%P.img" (
             echo Processing %%P...
             %fastboot% delete-logical-partition %%P_a
             %fastboot% delete-logical-partition %%P_b
